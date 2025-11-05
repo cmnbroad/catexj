@@ -12,4 +12,7 @@ public class TestBase {
     public static final IOPath TEST_BAM = new HtsPath(GENOMICS_TEST_FILES + "CEUTrio.HiSeq.WGS.b37.NA12878.20.21.bam");
     public static final IOPath TEST_BAM_INDEX = new HtsPath(GENOMICS_TEST_FILES + "CEUTrio.HiSeq.WGS.b37.NA12878.20.21.bam.bai");
     public static final IOPath TEST_GVCF = new HtsPath(GENOMICS_TEST_FILES + "threeSamples.MT.g.vcf");
+
+    // interval list with a single interval contained within another interval
+    public static final IOPath TEST_INTERVAL_LIST = new HtsPath(GENOMICS_TEST_FILES + "interval_list_to_bed_test.interval_list");
 }

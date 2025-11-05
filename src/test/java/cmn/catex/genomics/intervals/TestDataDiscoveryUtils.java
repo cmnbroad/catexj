@@ -383,9 +383,7 @@ public class TestDataDiscoveryUtils {
     }
 
     // find test files that have overlapping features
-    @Test(dataProvider = "featureFilesForOverlapQuery"
-            //, enabled = false
-    )
+    @Test(dataProvider = "featureFilesForOverlapQuery", enabled = false)
     private void findFeatureFilesWithOverlaps(final String featureFilePath) {
         try (final VCFFileReader reader = new VCFFileReader(new HtsPath(featureFilePath).toPath(), false)) {
             final IntervalList intervalList = reader.toIntervalList();

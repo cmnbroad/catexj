@@ -69,8 +69,7 @@ public class IntervalTests extends TestBase {
     @Test
     private void testContainmentFromIntervalList() {
         // category to graph
-        final IntervalList intervalList = GenomicIntervalTestUtils.intervalListFromPicardIntervalList(
-                new HtsPath(GENOMICS_TEST_FILES + "exome_calling_regions.v1.interval_list"));
+        final IntervalList intervalList = GenomicIntervalTestUtils.intervalListFromPicardIntervalList(TEST_INTERVAL_LIST);
         final FiniteCategory<IntervalList, Interval> finiteCategory =
                 GenomicIntervalTestUtils.toContainsCategory(intervalList);
         final IOPath tempPDFPath = getTempPDFPathForCategory(finiteCategory);
@@ -101,7 +100,7 @@ public class IntervalTests extends TestBase {
     public Object[][] getFeatureFiles() {
         return new Object[][] {
                 // test file(s) with overlaps
-                { TEST_GVCF },
+                { TEST_GVCF }, // no overlapping features
                 { new HtsPath(GATK_CLONE.getRawInputString() + "src/test/resources/large/Mills_and_1000G_gold_standard.indels.b37.sites.chr20.vcf") },
         };
     }

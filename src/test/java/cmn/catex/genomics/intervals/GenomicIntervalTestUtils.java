@@ -72,7 +72,7 @@ public class GenomicIntervalTestUtils {
                 morphisms.add(previousInterval, nextInterval);
                 previousInterval = null;
             }
-            final Interval terminalInterval = findTerminalIntervalWithProperty(i + 1, intervals, propertyPredicate);
+            final Interval terminalInterval = findTerminalIntervalWithProperty(i, intervals, propertyPredicate);
             if (terminalInterval != null) {
                 morphisms.add(sourceInterval, terminalInterval);
             }
@@ -84,16 +84,23 @@ public class GenomicIntervalTestUtils {
             final int i,
             final List<Interval> intervals,
             final BiFunction<Interval, Interval, Boolean> propertyPredicate) {
-        final Interval sourceInterval = intervals.get(i);
+        Utils.validateArg(i < intervals.size()-1, "there must be at least two intervals left in the list");
+
         Interval terminalInterval = null;
-        for (int j = i + 1; j < intervals.size(); j++) {
-            Interval nextInterval = intervals.get(j);
-            if (propertyPredicate.apply(sourceInterval, nextInterval)) {
-                terminalInterval = nextInterval;
-            } else {
-                break;
+        final Interval sourceInterval = intervals.get(i);
+        Interval nextInterval = intervals.get(i+1);
+        if (propertyPredicate.apply(sourceInterval, nextInterval)) {
+            // advance through the remaining intervals looking for the first one that fails the predicate,
+            // and make that the terminal interval
+            for (int j = i+2; j < intervals.size(); j++) {
+                nextInterval = intervals.get(j);
+                if (!propertyPredicate.apply(sourceInterval, nextInterval)) {
+                    terminalInterval = nextInterval;
+                    break;
+                }
             }
         }
+
         return terminalInterval;
     }
 }
