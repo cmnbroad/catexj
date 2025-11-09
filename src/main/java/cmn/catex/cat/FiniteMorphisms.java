@@ -17,6 +17,11 @@ public class FiniteMorphisms<E> {
         // Default constructor
     }
 
+    public FiniteMorphisms(final Map<E, List<E>> other) {
+        other.entrySet().forEach(
+                (entry -> { entry.getValue().forEach(value -> this.add(entry.getKey(), value)); }));
+    }
+
     public FiniteMorphisms(final FiniteMorphisms<E> other) {
         // make a copy; it would be more efficient to copy the entire list at once, but this is simpler
         other.getMorphismMap().forEach(
