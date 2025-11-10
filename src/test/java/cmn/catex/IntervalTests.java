@@ -107,7 +107,7 @@ public class IntervalTests extends TestBase {
 
     @Test(dataProvider = "overlapFeatureFiles")
     private void testOverlapsFromFeatureFile(final IOPath filePath) {
-        final IntervalList intervalList = GenomicIntervalTestUtils.intervalListFromGVCF(TEST_GVCF);
+        final IntervalList intervalList = GenomicIntervalTestUtils.intervalListFromGVCF(filePath);
         final FiniteCategory<IntervalList, Interval> finiteCategory =
                 GenomicIntervalTestUtils.toOverlapsCategory(intervalList);
         final IOPath tempPDFPath = getTempPDFPathForCategory(finiteCategory);
