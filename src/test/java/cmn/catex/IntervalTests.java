@@ -8,35 +8,28 @@ import cmn.catex.genomics.intervals.GenomicIntervalTestUtils;
 
 import cmn.catex.utils.GraphUtils;
 import htsjdk.beta.plugin.IOUtils;
-import htsjdk.io.HtsPath;
 import htsjdk.io.IOPath;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalList;
 
 import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import java.nio.file.Files;
 
 public class IntervalTests extends TestBase {
 
-    //test files
-    private static final IOPath GATK_CLONE = new HtsPath("../hellbender/");
-
-    @BeforeTest
-    private void setup() {
-        if (Files.notExists(GATK_CLONE.toPath())) {
-            throw new IllegalStateException(
-                    "Genomics test files not found - clone https://github.com/broadinstitute/gatk " +
-                            "as a peer to the catexj repository.");
-        }
-    }
-
     @Test
     private void testContainmentFromBAM() {
+        // has 3 reads with 2 contained intervals each
+        // Element 20:1-100	+	. has multiple outgoing morphisms:
+        //  -> 20:2-99	+	.
+        //  -> 20:101-200	+	.
+        // Element 20:2-99	+	. has multiple outgoing morphisms:
+        //  -> 20:3-98	+	.
+        //  -> 20:101-200	+	.
+        // Element 20:3-98	+	. has multiple outgoing morphisms:
+        //  -> 20:4-97	+	.
+        //  -> 20:101-200	+	.
         final SAMSequenceDictionary samDict =
                 GenomicIntervalTestUtils.intervalListFromBAM(TEST_BAM)
                         .getHeader()
@@ -57,7 +50,13 @@ public class IntervalTests extends TestBase {
 
     @Test
     private void testContainmentFromFeatureFile() {
-        //note: this test file has no actual contained intervals
+        // has 2 features with 2 contained intervals each
+        // Element MT:16179-16181	+	interval-10350 has multiple outgoing morphisms:
+        //  -> MT:16180-16180	+	interval-10351
+        //  -> MT:16183-16183	+	interval-10353
+        // Element MT:16263-16264	+	interval-10395 has multiple outgoing morphisms:
+        //  -> MT:16264-16264	+	interval-10396
+        //  -> MT:16265-16265	+	interval-10397
         final IntervalList intervalList = GenomicIntervalTestUtils.intervalListFromGVCF(TEST_GVCF);
         final FiniteCategory<IntervalList, Interval> finiteCategory =
                 GenomicIntervalTestUtils.toContainsCategory(intervalList);
@@ -68,7 +67,9 @@ public class IntervalTests extends TestBase {
 
     @Test
     private void testContainmentFromIntervalList() {
-        // category to graph
+        // Element chr5:10000-10000	+	one_base_feature has multiple outgoing morphisms:
+        //  -> chr5:10001-10000	+	zero_base_feature
+        //  -> chr5:1000000-1000000	+	target_at_chrom_end
         final IntervalList intervalList = GenomicIntervalTestUtils.intervalListFromPicardIntervalList(TEST_INTERVAL_LIST);
         final FiniteCategory<IntervalList, Interval> finiteCategory =
                 GenomicIntervalTestUtils.toContainsCategory(intervalList);
@@ -79,6 +80,15 @@ public class IntervalTests extends TestBase {
 
     @Test
     private void testOverlapsFromBAM() {
+        // Element 20:1-100	+	. has multiple outgoing morphisms:
+        //  -> 20:2-99	+	.
+        //  -> 20:101-200	+	.
+        // Element 20:2-99	+	. has multiple outgoing morphisms:
+        //  -> 20:3-98	+	.
+        //  -> 20:101-200	+	.
+        // Element 20:3-98	+	. has multiple outgoing morphisms:
+        //  -> 20:4-97	+	.
+        //  -> 20:101-200	+	.
         final SAMSequenceDictionary samDict = GenomicIntervalTestUtils.intervalListFromBAM(TEST_BAM)
                 .getHeader()
                 .getSequenceDictionary();
@@ -96,18 +106,15 @@ public class IntervalTests extends TestBase {
         Assert.assertTrue(true);
     }
 
-    @DataProvider(name = "overlapFeatureFiles")
-    public Object[][] getFeatureFiles() {
-        return new Object[][] {
-                // test file(s) with overlaps
-                { TEST_GVCF }, // no overlapping features
-                { new HtsPath(GATK_CLONE.getRawInputString() + "src/test/resources/large/Mills_and_1000G_gold_standard.indels.b37.sites.chr20.vcf") },
-        };
-    }
-
-    @Test(dataProvider = "overlapFeatureFiles")
-    private void testOverlapsFromFeatureFile(final IOPath filePath) {
-        final IntervalList intervalList = GenomicIntervalTestUtils.intervalListFromGVCF(filePath);
+    @Test
+    private void testOverlapsFromFeatureFile() {
+        // Element MT:16179-16181	+	interval-10350 has multiple outgoing morphisms:
+        //  -> MT:16180-16180	+	interval-10351
+        //  -> MT:16183-16183	+	interval-10353
+        //  Element MT:16263-16264	+	interval-10395 has multiple outgoing morphisms:
+        //  -> MT:16264-16264	+	interval-10396
+        //  -> MT:16265-16265	+	interval-10397
+        final IntervalList intervalList = GenomicIntervalTestUtils.intervalListFromGVCF(TEST_GVCF);
         final FiniteCategory<IntervalList, Interval> finiteCategory =
                 GenomicIntervalTestUtils.toOverlapsCategory(intervalList);
         final IOPath tempPDFPath = getTempPDFPathForCategory(finiteCategory);
@@ -123,4 +130,15 @@ public class IntervalTests extends TestBase {
         return tempPDFPath;
     }
 
+    private static <S, E> void reportMultiMorphsims(
+            FiniteCategory<S, E> finiteCategory,
+            final String header) {
+        System.out.println("---- " + header + " ----");
+        finiteCategory.getMorphismMap().entrySet().stream()
+                .filter(entry -> entry.getValue().size() > 1)
+                .forEach(entry -> {
+                    System.out.println("Element " + entry.getKey() + " has multiple outgoing morphisms:");
+                    entry.getValue().forEach(value -> System.out.println("  -> " + value));
+                });
+    }
 }
